@@ -1,2 +1,37 @@
 # modpackdownloader
- Download minecraft modpacks from curseforge without using overwolf
+Simple minecraft downloader without the bloat of overwolf.
+
+***Works with java 11 and up***
+
+# Usage
+1. Download jar from releases
+2. Navigate to it in your console of choice
+3. Download your minecraft modpack from curseforge, and 
+   unzip it.
+4. Execute modpackdownloader with the command below
+   ```bash
+    java -jar modpackdownloader-1.0.0.jar
+   ```
+5. It will ask you for the path to manifest.json, enter the
+   full path (⚠***IT CAN NOT CONTAIN SPACES***⚠)
+6. After its done downloading all the files it will display
+   a report, there you can see all the needed info to 
+   install the modpack. Assembled modpack is found in
+   `<root-of-manifest.json>/modpack`
+   Mods are found in the 
+   `<root-of-manifest.json>/mods`.
+    
+    ### example report
+    ```txt
+        ============> Report <============
+        Modpack info :
+            - Modpack name : "All the Mods 6"
+            - Modpack author : "LadyLexxie"
+            - Modpack version : "1.7.8"
+            - Ammount of mods : 321
+        Modloader acceptable versions :
+            - forge-36.2.2 | recommended : true
+
+        Minecraft version : "1.16.5"
+    ```
+    
