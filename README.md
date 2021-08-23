@@ -7,13 +7,12 @@ Simple minecraft downloader without the bloat of overwolf.
 1. Download jar from releases
 2. Navigate to it in your console of choice
 3. Download your minecraft modpack from curseforge, and 
-   unzip it.
+   unzip it. After unzipping copy over the jar to the unzipped folder.
 4. Execute modpackdownloader with the command below
    ```bash
     java -jar modpackdownloader-1.0.0.jar
    ```
-5. It will ask you for the path to manifest.json, enter the
-   full path (⚠***IT CAN NOT CONTAIN SPACES***⚠)
+5. It will ask you for the path to manifest.json, enter `manifest.json` and press enter (⚠***IT CAN NOT CONTAIN SPACES***⚠)
 6. After its done downloading all the files it will display
    a report, there you can see all the needed info to 
    install the modpack. Assembled modpack is found in
