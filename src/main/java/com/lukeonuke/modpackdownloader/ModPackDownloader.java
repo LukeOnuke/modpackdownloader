@@ -2,6 +2,7 @@ package com.lukeonuke.modpackdownloader;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.therandomlabs.curseapi.CurseAPI;
 import org.apache.commons.io.FileUtils;
@@ -12,33 +13,36 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ModPackDownloader {
+    public static final HashMap<Integer, Integer> errors = new HashMap<>();
+    private static final Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
         Gson gson = new Gson();
 
         System.out.print("Enter path to manifest : ");
         String pathToManifest = scanner.next();
+        pathToManifest += File.separator + "manifest.json";
         File manifest = new File(pathToManifest).getAbsoluteFile();
         while (!manifest.exists() || manifest.isDirectory()) {
             System.err.println("Could not find manifest \"" + manifest + "\"");
             System.out.println("\nEnter path to manifest : ");
             pathToManifest = scanner.next();
+            pathToManifest += File.separator + "manifest.json";
             manifest = new File(pathToManifest);
         }
-
-        scanner.close();
+        AtomicInteger maxSize = new AtomicInteger();
 
         System.out.println("Purging mods path...");
         purgeDirectory(new File(manifest.getParent() + "/mods"));
         System.out.println("Purged mods path successfully!");
 
         JsonObject jsonObject = null;
-        AtomicInteger maxSize = new AtomicInteger();
         try {
             jsonObject = gson.fromJson(new FileReader(pathToManifest), JsonObject.class);
 
@@ -54,31 +58,7 @@ public class ModPackDownloader {
             size.set(manifestFiles.size());
 
             final File finalManifest = manifest;
-            manifestFiles.forEach(file -> {
-                System.out.println(file);
-                final JsonObject fileObject = (JsonObject) file;
-                try {
-                    System.out.println(standardLine() + size.get() + standardLine());
-                    System.out.printf("Downloading file projID=%d fileID=%d | %d/%d\n",
-                            fileObject.get("projectID").getAsInt(),
-                            fileObject.get("fileID").getAsInt(),
-                            size.get(),
-                            maxSize.get());
-
-                    Optional<Path> curseFIle = CurseAPI.downloadFileToDirectory(
-                            fileObject.get("projectID").getAsInt(),
-                            fileObject.get("fileID").getAsInt(),
-                            getChildFile(finalManifest.getParent(), "/mods").toPath());
-
-                    curseFIle.ifPresent(path -> System.out.println("Done downloading file " + path));
-
-                    size.getAndDecrement();
-                } catch (Exception e) {
-                    System.err.println("An exception occurred while downloading file");
-                    e.printStackTrace();
-                    System.exit(-1);
-                }
-            });
+            manifestFiles.forEach(file -> downloadFile(file, finalManifest, size, maxSize, 0));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             System.exit(-1);
@@ -111,6 +91,10 @@ public class ModPackDownloader {
         }
 
         System.out.println(standardLine() + "> Report <" + standardLine());
+        System.out.println("Errors whilst downloading");
+        errors.forEach((integer, integer2) -> {
+            System.out.println("\tProject id : " + integer +" - error count: " + integer2);
+        });
 
         System.out.println("Modpack info : ");
         System.out.println("\t- Modpack name : " + jsonObject.get("name"));
@@ -148,6 +132,40 @@ public class ModPackDownloader {
 
     private static File getChildFile(String file, String path) {
         return new File(new File(file).getAbsoluteFile().getPath() + path.replaceAll("(\\|/)", File.separator));
+    }
+
+    private static void downloadFile(JsonElement file, final File manifest, AtomicInteger size, AtomicInteger maxSize, int retries){
+        System.out.println(file);
+        final JsonObject fileObject = (JsonObject) file;
+        try {
+            System.out.println(standardLine() + size.get() + standardLine());
+            System.out.printf("Downloading file projID=%d fileID=%d | %d/%d\n",
+                    fileObject.get("projectID").getAsInt(),
+                    fileObject.get("fileID").getAsInt(),
+                    size.get(),
+                    maxSize.get());
+
+            Optional<Path> curseFIle = CurseAPI.downloadFileToDirectory(
+                    fileObject.get("projectID").getAsInt(),
+                    fileObject.get("fileID").getAsInt(),
+                    getChildFile(manifest.getParent(), "/mods").toPath());
+
+            curseFIle.ifPresent(path -> System.out.println("Done downloading file " + path));
+
+            size.getAndDecrement();
+        } catch (Exception e) {
+            System.err.println("An exception occurred while downloading file, retrying (" + (retries + 1) + "/3).");
+            retries++;
+
+            errors.put(fileObject.get("projectID").getAsInt(), retries);
+
+            if(retries < 3){
+                downloadFile(file, manifest, size, maxSize, retries);
+            }else{
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        }
     }
 }
 
