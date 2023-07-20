@@ -2,9 +2,9 @@
 
 > **Warning**
 > 
-> I have written a **better** version of this [link here (LukeOnuke/mpdl)](https://github.com/lukeonuke/mpdl), using the newer API's and made it compatable with the new curseforge DRM
+> I have written a **better** version of this [link here (LukeOnuke/mpdl)](https://github.com/lukeonuke/mpdl), using the newer API's and made it compatible with the new curseforge DRM.
 > 
-> This program is no longer supported and probably doesnt work anymore.
+> This program is no longer supported and probably doesn't work anymore.
 
 Simple minecraft downloader without the bloat of overwolf.
 
